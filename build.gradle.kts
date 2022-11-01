@@ -13,6 +13,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
+    //implementation(npm("bootstrap", "5.2.2"))
 }
 
 kotlin {
