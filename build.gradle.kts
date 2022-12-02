@@ -11,17 +11,24 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-js"))
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
     //implementation(npm("bootstrap", "5.2.2"))
 }
 
 kotlin {
-    js(LEGACY) {
+
+    js {
         binaries.executable()
         browser {
             commonWebpackConfig {
                 cssSupport.enabled = true
+            }
+            testTask {
+                useKarma {
+                    //useFirefox()
+                    useChromeHeadless()
+                }
             }
         }
     }
