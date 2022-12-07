@@ -140,19 +140,10 @@ data class GameState(
         if (bearOffDiff > 0) return false
         // `number` is more than what is needed. No non-bear off moves should exist.
 
-        val higherRange = if (turnOf == 1) 19 until move.from else 6 downTo (move.from + 1)
-        // go through the higher home row fields, where shouldn't be valid moves
+        val higherRange = if (turnOf == 1) 0 until move.from else 25 downTo (move.from + 1)
+        // go through the higher home row fields, where shouldn't be player's checkers
         for (i in higherRange) {
-            if (fields[i] == 0 || fieldPlayerIdx[i] != turnOf) continue
-
-            // check for each number whether a move is possible from `i` to `i + num` or -1
-            for (num in numbersLeft.toSet()) {
-                val tar = i + if (turnOf == 1) num else -num
-                // bear-off available
-                if (tar >= 25 || tar <= 0) return false
-                // ordinary move available
-                if (fields[tar] < 2 || fieldPlayerIdx[tar] == turnOf) return false
-            }
+            if (fields[i] > 0 && fieldPlayerIdx[i] == turnOf) return false
         }
         return true
     }
@@ -186,7 +177,6 @@ data class GameState(
                 val move = Move(i, -1)
                 return if (isMoveLegalUsingNumber(move, maxNum)) move else null
             }
-
         }
         return null
     }
@@ -245,10 +235,11 @@ data class GameState(
         val maxCandidateLen = candidates.maxOf { it.size }
         // only the longest move sequences are valid (player has to use the most possible dice numbers)
         val longestCandidates = candidates.filter { it.size == maxCandidateLen }
-        // if only one move can be done, we have to use the bigger number
+        // if only one move can be done, we have to use the bigger number if we can
         if (maxCandidateLen == 1 && numbersLeft.size > 1) {
             val maxNum = numbersLeft.max()
-            return longestCandidates.filter { isMoveLegalUsingNumber(it[0], maxNum) }
+            val maxNumCandidates = longestCandidates.filter { isMoveLegalUsingNumber(it[0], maxNum) }
+            if (maxNumCandidates.isNotEmpty()) return maxNumCandidates
         }
         return longestCandidates
     }
@@ -256,7 +247,7 @@ data class GameState(
     /**
      * If the move is a compound move, split it to single moves. If it is invalid, return null.
      */
-    private fun decomposeMove(move: Move): List<Move>? {
+    fun decomposeMove(move: Move): List<Move>? {
         val moveSequences = possibleMoveSequences(4)
         // we search for the shortest good move sequence that equals to this move
         var shortestSeq: List<Move>? = null

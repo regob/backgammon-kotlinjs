@@ -14,7 +14,7 @@ open class GameEvent
 class NewRoundEvent :GameEvent()
 
 /**
- * Initial dice roll. One dice stores one roll of each player:
+ * Initial dice roll. One Dice object stores one roll of each player:
  * num1 is player1's roll and num2 is player2's.
  * If there are n rolls, it means that the first n-1 were equal (num1 == num2).
  */

@@ -225,7 +225,7 @@ class TestGame {
 
     @Test
     fun testGameLotsOfRounds() {
-        runMultipleRounds(55, 2324)
+        runMultipleRounds(35, 5656)
     }
 
 }

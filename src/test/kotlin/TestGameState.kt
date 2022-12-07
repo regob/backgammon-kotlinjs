@@ -438,6 +438,23 @@ class TestMoves {
         gameState.checkBadMoves(listOf(Move(24, -1), Move(23, -1), Move(22, -1)))
     }
 
+    /*
+    fields 6-1:
+    |2| | | |1| |
+    |2|2| | |1|1|
+    + 3 checkers on the bar for player1
+    */
+    val player1Fields4 = mapOf(0 to 3, 1 to 1, 2 to 2)
+    val player2Fields4 = mapOf(6 to 2, 5 to 1)
+    @Test
+    fun testBar2() {
+        val dice = Dice(5, 6)
+        val gameState = createGameState(player1Fields4, player2Fields4, 1, dice)
+        // there should be one move, moving a piece from the bar to field 5
+        val moveSeq = gameState.possibleMoveSequences(4)
+        assertEquals(listOf(listOf(Move(0, 5))), moveSeq, "Only one move should exist")
+    }
+
 }
 
 class TestUndo {

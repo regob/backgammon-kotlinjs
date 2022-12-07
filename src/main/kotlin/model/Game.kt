@@ -92,23 +92,29 @@ class Game(
     }
 
     fun moveableFields(): List<Int> {
-        gameState ?: throw IllegalStateException("GameState is null, isMovePossible called")
+        checkNotNull(gameState) {"GameState is null, isMovePossible called"}
         return gameState!!.moveableFields()
+    }
+
+    fun possibleFieldsFrom(field: Int) : List<Int> {
+        checkNotNull(gameState) {"GameState is null, possibleFieldsFrom called"}
+        val moves = gameState!!.possibleMovesFrom(field)
+        return moves.map {it.to}
+    }
+
+    fun playerControlsField(fieldIdx: Int): Boolean {
+        checkNotNull(gameState) {"GameState is null, playerControlsField called"}
+        return gameState!!.turnOf == gameState!!.fieldPlayerIdx[fieldIdx]
     }
 
     fun makeMove(fieldFrom: Int, fieldTo: Int) {
         if (!isMovePossible(fieldFrom, fieldTo)) {
-            println(asciiBoard(gameState!!))
-            println(dice)
-            gameState!!.undoLastTurn()
-            gameState!!.nextTurn()
-            gameState!!.setDice(dice!!)
-            println(gameState!!.possibleMoveSequences(4))
             throw IllegalArgumentException("Move impossible from $fieldFrom to $fieldTo")
         }
         val move = Move(fieldFrom, fieldTo)
+        val singleMoves = gameState!!.decomposeMove(move)
         gameState!!.makeMove(move)
-        raiseEvent(MoveEvent(move))
+        for (m in singleMoves!!) raiseEvent(MoveEvent(m))
 
         // if no moves left, check game end and go to next turn
         if (gameState!!.anyMovesPossible()) return
@@ -140,6 +146,8 @@ class Game(
         gameState = state
         this.gameIdx = gameIdx
     }
+
+
 
     fun save() {
         val obj = mapOf(
