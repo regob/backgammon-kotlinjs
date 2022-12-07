@@ -11,6 +11,20 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.events.Event
+import kotlin.js.Date
+
+// event que poll frequency in App
+val QUEUE_POLL_INTERVAL_MS = 30
+
+// animation parameters for each element (in ms)
+val ANIM_DURATION_DICE = 1000
+val ANIM_FREQ_DICE = 150
+val ANIM_DURATION_MOVE = 1000
+val ANIM_FREQ_MOVE = 10
+val ANIM_DURATION_NEW_ROUND = 1000
+val ANIM_DURATION_NEW_TURN = 400
+val ANIM_DURATION_ROUND_END = 100
+val ANIM_DURATION_GAME_END = 100
 
 
 
