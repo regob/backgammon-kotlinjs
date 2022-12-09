@@ -256,8 +256,8 @@ class GameBoard(private val app: IController) : Component(), Renderable {
             triangles[i-1].isActive = i in fields
         }
         // set the bar active too if -1 in fields
-        if (-1 in fields) bars[2].addClass("active")
-        else bars[2].removeClass("active")
+        if (-1 in fields) bars[2].classList.add("active")
+        else bars[2].classList.remove("active")
     }
 
     fun highlightCheckersAt(fields: Set<Int>) {
