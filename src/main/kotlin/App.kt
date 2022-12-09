@@ -54,7 +54,7 @@ class App :IController {
         // initialize the game and the game screen, where it is displayed
         gameScreen = GameScreen(this, root, player1, player2)
         animGameScreen = gameScreen as IAnimatedGameScreen
-        game = Game(settings.numGames, ::receiveGameEvent)
+        game = Game(settings.numRounds, ::receiveGameEvent)
         computer = Computer(settings.level, this::handleComputerResponse)
     }
 

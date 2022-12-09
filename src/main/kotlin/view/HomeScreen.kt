@@ -8,13 +8,17 @@ import kotlinx.html.dom.append
 import kotlinx.html.dom.create
 import kotlinx.html.js.*
 import Settings
+import kotlinx.browser.window
 import kotlinx.html.*
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 
+/**
+ * Create a callback for updating an element when an input changes.
+ */
 private fun inputFeedbackCallback(inputId: String, feedbackId: String): (Event) -> Unit {
-    """Create a callback for updating an element when an input changes."""
+
     fun updateNumGames(event: Event) {
         val numFeedback = document.getElementById(feedbackId)
         val newval = (document.getElementById(inputId) as HTMLInputElement?)?.value
@@ -47,13 +51,16 @@ private fun HTMLElement.inputSlider(
     }
 }
 
+/**
+ * A group of elements containing game settings
+ */
 private fun HTMLElement.settingsForm(settings: Settings) {
-    """A group of elements containing game settings"""
     append {
-        inputSlider("numGamesInput", "Number of games:", "1", "11", "2", "${settings.numGames}")
+        inputSlider("numGamesInput", "Number of rounds:", "1", "11", "2", "${settings.numRounds}")
         inputSlider("levelInput", "Level:", "1", "5", "1", "${settings.level}")
     }
 }
+
 
 class HomeScreen(app: IController, root: HTMLElement, private val settings: Settings): AppScreen(app, root) {
 
@@ -70,13 +77,14 @@ class HomeScreen(app: IController, root: HTMLElement, private val settings: Sett
             container.settingsForm(settings)
             button(classes = "btn btn-primary") {
                 onClickFunction = {
-                    settings.numGames = (document.getElementById("numGamesInput") as HTMLInputElement).value.toInt()
+                    settings.numRounds = (document.getElementById("numGamesInput") as HTMLInputElement).value.toInt()
                     settings.level = (document.getElementById("levelInput") as HTMLInputElement).value.toInt()
                     app.newGame()
                 }
                 +"Start"
             }
         }
+        window.onresize = {}
     }
 }
 

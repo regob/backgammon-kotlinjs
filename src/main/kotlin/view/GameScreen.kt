@@ -22,6 +22,7 @@ import kotlin.js.Date
 import ANIM_DURATION_NEW_TURN
 import ANIM_DURATION_ROUND_END
 import org.w3c.dom.events.Event
+import kotlin.math.min
 
 
 val SVG_NS = "http://www.w3.org/2000/svg"
@@ -76,8 +77,17 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         gameBoard.checkerRadius, 2 * (gameBoard.checkerRadius + gameBoard.checkerBorder))
     private lateinit var rollDiceButton: HTMLButtonElement
 
+    private val boardMarginX = 150
+    private val boardMarginY = 100
+
     init {
         renderAll()
+    }
+
+    private fun autoScaleBoard() {
+        val scaleW = window.innerWidth.toDouble() / (gameBoard.svgWidth + 2*boardMarginX)
+        val scaleH = window.innerHeight.toDouble() / (gameBoard.svgHeight + 2*boardMarginY)
+        root.setAttribute("style", "scale:${min(scaleW, scaleH)}")
     }
 
     private fun renderAll() {
@@ -108,7 +118,8 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         }
         if (svgLoadEpoch < 1e9) svgLoadEpoch = Date.now()
         rollDiceButton = document.getElementsByClassName("rolldice-button")[0] as HTMLButtonElement
-        window.onresize = {console.log("${window.innerWidth}, ${window.innerHeight}")}
+        window.onresize = {autoScaleBoard()}
+        autoScaleBoard()
     }
 
     override fun initialDiceRoll(result1: Int, result2: Int) {

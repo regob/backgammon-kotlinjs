@@ -21,17 +21,18 @@ import kotlin.math.sign
 
 class GameBoard(private val app: IController) : Component(), Renderable {
 
-    val svgWidth = 720
-    val svgHeight = 400
-    val borderWidth = 20
-    val barWidth = 36
+    val svgWidth = 1284
+    val svgHeight = 700
+    val borderWidth = 30
+    val barWidth = 48
     val barAreaHeight = (svgHeight - 2 * borderWidth) * 2 / 3
-    val triangleHeight = 150
+    val triangleHeight = 280
     val triangleWidth = (svgWidth - 3 * barWidth) / 12
     val checkerBorder = 1
     val checkerRadius = triangleHeight / 10 - checkerBorder
-    val dieSize = 36
-    val dieGap = 4
+    val dieSize = 56
+    val dieGap = 6
+
 
     private val triangles: List<Triangle> = initTriangles()
     private val checkersAt = List<MutableList<Checker>>(26) { mutableListOf() }

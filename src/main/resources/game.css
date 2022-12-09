@@ -4,18 +4,25 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    margin-top: 20px;
 }
 
 
 /*********** Status row ***********/
 
 .player-profile {
-    font-size: 16pt;
+    font-size: 36pt;
     padding: 3px;
+    align-items: center;
 }
 
 .player-profile.active {
     box-shadow: 3px 3px 10px black;
+}
+
+.player-profile span {
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .status-row {
@@ -41,7 +48,7 @@
 }
 
 #scoreboard {
-    font-size: 20pt;
+    font-size: 40pt;
 }
 
 
@@ -115,7 +122,12 @@ circle.light {
     justify-content: center;
 }
 
-.rolldice-button {
+.board-container .rolldice-button {
     z-index: 20;
+    font-size: 28px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-style: solid;
+    border-color: black;
 }
 
