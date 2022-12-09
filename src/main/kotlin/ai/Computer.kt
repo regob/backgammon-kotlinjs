@@ -1,6 +1,5 @@
 package ai
 
-import model.Dice
 import model.GameState
 import model.Move
 import org.w3c.dom.*

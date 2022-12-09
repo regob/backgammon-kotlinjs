@@ -1,7 +1,6 @@
 import kotlinx.html.TagConsumer
 import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
-import org.w3c.dom.svg.SVGElement
 import kotlin.reflect.KProperty
 
 abstract class AppScreen(protected val app: IController, protected val root: HTMLElement)

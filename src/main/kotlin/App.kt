@@ -1,6 +1,5 @@
 import ai.Computer
 import kotlinx.browser.document
-import kotlinx.browser.window
 import model.*
 import org.w3c.dom.HTMLElement
 import view.GameScreen

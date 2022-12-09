@@ -5,7 +5,6 @@ import CSSClassDelegate
 import RenderableInto
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.dom.clear
 import org.w3c.dom.Element
 import org.w3c.dom.events.Event
 import org.w3c.dom.svg.SVGElement

@@ -5,7 +5,7 @@ enum class PlayerSide {
     PLAYER1, PLAYER2, RANDOM
 }
 
-class Settings() {
+class Settings {
     var numGames: Int = 1
     var level: Int = 1
     var color: PlayerSide = PlayerSide.RANDOM

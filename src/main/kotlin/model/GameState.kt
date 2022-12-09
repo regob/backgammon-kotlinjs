@@ -1,7 +1,6 @@
 package model
 
 import kotlin.math.abs
-import kotlin.math.max
 
 /**
  * A move of a checker from a field to another field.

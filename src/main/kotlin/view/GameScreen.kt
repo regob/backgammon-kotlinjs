@@ -19,12 +19,9 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import kotlin.js.Date
-import ANIM_DURATION_MOVE
 import ANIM_DURATION_NEW_TURN
 import ANIM_DURATION_ROUND_END
-import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
-import org.w3c.dom.events.MouseEvent
 
 
 val SVG_NS = "http://www.w3.org/2000/svg"
@@ -56,7 +53,6 @@ private val STR_NEW_GAME = "To main menu"
 
 
 fun displayModalDialog(title: String, body: String, buttonText: String, callback: ((Event) -> Unit)? = null) {
-    val modal = document.getElementById(MODAL_ID) as HTMLElement
     val modalTitle = document.getElementById("${MODAL_ID}-title") as HTMLElement
     val modalBody = document.getElementById("${MODAL_ID}-content") as HTMLElement
     val modalButton = document.getElementById("${MODAL_ID}-button") as HTMLButtonElement

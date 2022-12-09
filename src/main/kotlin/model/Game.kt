@@ -1,7 +1,6 @@
 package model
 
 import kotlinx.browser.localStorage
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 

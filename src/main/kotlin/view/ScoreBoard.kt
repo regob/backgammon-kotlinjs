@@ -7,7 +7,7 @@ import kotlinx.html.div
 import kotlinx.html.id
 import org.w3c.dom.HTMLElement
 
-class ScoreBoard() : Component(), Renderable {
+class ScoreBoard : Component(), Renderable {
 
     override fun render(tc: TagConsumer<HTMLElement>) {
         root = tc.div {
