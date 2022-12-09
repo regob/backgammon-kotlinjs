@@ -1,0 +1,123 @@
+.player-profile {
+    font-size: 16pt;
+}
+
+.player-profile img {
+    width: 30px;
+    height: 30px;
+}
+
+.player-profile.active {
+    background-color: green;
+    opacity: 0.5;
+}
+
+.game-container {
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.status-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.status-row > div {
+    display: flex;
+    width: 100%;
+}
+
+.status-row > div:nth-child(2) {
+    justify-content: center;
+}
+
+.status-row > div:nth-child(3) {
+    justify-content: flex-end;
+}
+
+#scoreboard {
+    font-size: 20pt;
+}
+
+.board {
+    position: relative;
+    z-index: 1;
+}
+
+.board .background {
+    fill: saddlebrown;
+}
+
+.board .board-background {
+    fill: wheat;
+}
+
+.board .bar {
+    fill: saddlebrown;
+}
+
+.board  polygon {
+    stroke-width: 1;
+    stroke: black;
+}
+
+.board  polygon.dark {
+    fill: brown;
+}
+
+.board  polygon.light {
+    fill: beige;
+}
+
+.board polygon.active {
+    stroke-width: 2;
+    stroke: green;
+}
+
+.board circle {
+    stroke-width: 1;
+    stroke: black;
+}
+
+.board circle.dark {
+    fill: darkred;
+}
+
+.board circle.light {
+    fill: peru;
+}
+
+.board circle.active {
+    stroke-width: 2;
+    stroke: green;
+}
+
+.board-container {
+    position: relative;
+    width: fit-content;
+}
+
+.board-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.board-overlay > div {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rolldice-button {
+    z-index: 20;
+}
+
