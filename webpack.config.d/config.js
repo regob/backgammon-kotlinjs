@@ -4,3 +4,9 @@ config.module.rules.push(
         type: 'asset/resource'
     }
 );
+// turn off the 244k file limit warning
+config.performance =  {
+   hints: false,
+   maxEntrypointSize: 512000,
+   maxAssetSize: 512000
+}

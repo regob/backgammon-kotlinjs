@@ -9,6 +9,8 @@ import IController
 import Renderable
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.dom.addClass
+import kotlinx.dom.removeClass
 import kotlinx.html.TagConsumer
 import kotlinx.html.js.svg
 import org.w3c.dom.HTMLElement
@@ -26,7 +28,8 @@ class GameBoard(private val app: IController) : Component(), Renderable {
     val barAreaHeight = (svgHeight - 2 * borderWidth) * 2 / 3
     val triangleHeight = 150
     val triangleWidth = (svgWidth - 3 * barWidth) / 12
-    val checkerRadius = triangleHeight / 10
+    val checkerBorder = 1
+    val checkerRadius = triangleHeight / 10 - checkerBorder
     val dieSize = 36
     val dieGap = 4
 
@@ -251,6 +254,9 @@ class GameBoard(private val app: IController) : Component(), Renderable {
         for (i in 1..24) {
             triangles[i-1].isActive = i in fields
         }
+        // set the bar active too if -1 in fields
+        if (-1 in fields) bars[2].addClass("active")
+        else bars[2].removeClass("active")
     }
 
     fun highlightCheckersAt(fields: Set<Int>) {

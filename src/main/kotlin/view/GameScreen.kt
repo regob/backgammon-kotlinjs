@@ -49,9 +49,6 @@ private val STR_GAME_LOST = "You lost the game. Better luck next time!"
 private val STR_GAME_WON = "You won the game! That's how it's done!"
 private val STR_NEW_GAME = "To main menu"
 
-
-
-
 fun displayModalDialog(title: String, body: String, buttonText: String, callback: ((Event) -> Unit)? = null) {
     val modalTitle = document.getElementById("${MODAL_ID}-title") as HTMLElement
     val modalBody = document.getElementById("${MODAL_ID}-content") as HTMLElement
@@ -72,9 +69,11 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
 
     private val playerIndex = if (player1.isOpponent) 2 else 1
     private val scoreBoard = ScoreBoard()
-    private val playerProfile1 = PlayerProfile(player1.name, player1.avatar_path, true)
-    private val playerProfile2 = PlayerProfile(player2.name, player2.avatar_path, false)
     private val gameBoard = GameBoard(app)
+    private val playerProfile1 = PlayerProfile(player1.name, true, true,
+        gameBoard.checkerRadius, 2 * (gameBoard.checkerRadius + gameBoard.checkerBorder))
+    private val playerProfile2 = PlayerProfile(player2.name, false, false,
+        gameBoard.checkerRadius, 2 * (gameBoard.checkerRadius + gameBoard.checkerBorder))
     private lateinit var rollDiceButton: HTMLButtonElement
 
     init {
@@ -109,6 +108,7 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         }
         if (svgLoadEpoch < 1e9) svgLoadEpoch = Date.now()
         rollDiceButton = document.getElementsByClassName("rolldice-button")[0] as HTMLButtonElement
+        window.onresize = {console.log("${window.innerWidth}, ${window.innerHeight}")}
     }
 
     override fun initialDiceRoll(result1: Int, result2: Int) {
@@ -128,6 +128,8 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
             val biggerIdx = if (result1 > result2) 1 else 2
             val modalContent = if (biggerIdx == playerIndex) STR_WON_ROLL else STR_LOST_ROLL
             window.setTimeout({
+                val startProfile = if (biggerIdx == 1) playerProfile1 else playerProfile2
+                startProfile.isActive = true
                 displayModalDialog(STR_INITIAL_ROLL, modalContent, STR_OK) {
                     app.animationFinished()
                 }

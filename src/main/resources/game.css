@@ -1,17 +1,4 @@
-.player-profile {
-    font-size: 16pt;
-}
-
-.player-profile img {
-    width: 30px;
-    height: 30px;
-}
-
-.player-profile.active {
-    background-color: green;
-    opacity: 0.5;
-}
-
+/*********** Main game container ***********/
 .game-container {
     width: fit-content;
     display: flex;
@@ -19,10 +6,25 @@
     justify-content: center;
 }
 
+
+/*********** Status row ***********/
+
+.player-profile {
+    font-size: 16pt;
+    padding: 3px;
+}
+
+.player-profile.active {
+    box-shadow: 3px 3px 10px black;
+}
+
 .status-row {
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 2px;
 }
 
 .status-row > div {
@@ -41,6 +43,9 @@
 #scoreboard {
     font-size: 20pt;
 }
+
+
+/*********** board ***********/
 
 .board {
     position: relative;
@@ -72,33 +77,26 @@
     fill: beige;
 }
 
-.board polygon.active {
-    stroke-width: 2;
-    stroke: green;
-}
-
-.board circle {
+circle {
     stroke-width: 1;
     stroke: black;
 }
 
-.board circle.dark {
+circle.dark {
     fill: darkred;
 }
 
-.board circle.light {
+circle.light {
     fill: peru;
 }
 
-.board circle.active {
-    stroke-width: 2;
-    stroke: green;
-}
 
 .board-container {
     position: relative;
     width: fit-content;
 }
+
+/*********** Board overlay for buttons, etc. ***********/
 
 .board-overlay {
     position: absolute;

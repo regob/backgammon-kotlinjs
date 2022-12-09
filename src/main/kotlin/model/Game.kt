@@ -101,11 +101,6 @@ class Game(
         return moves.map {it.to}
     }
 
-    fun playerControlsField(fieldIdx: Int): Boolean {
-        checkNotNull(gameState) {"GameState is null, playerControlsField called"}
-        return gameState!!.turnOf == gameState!!.fieldPlayerIdx[fieldIdx]
-    }
-
     fun makeMove(fieldFrom: Int, fieldTo: Int) {
         if (!isMovePossible(fieldFrom, fieldTo)) {
             throw IllegalArgumentException("Move impossible from $fieldFrom to $fieldTo")
@@ -137,7 +132,6 @@ class Game(
         nextTurn()
     }
 
-
     fun loadGameState(state: GameState, score1: Int, score2: Int, gameIdx: Int) {
         playerScore1 = score1
         playerScore2 = score2
@@ -146,39 +140,14 @@ class Game(
         this.gameIdx = gameIdx
     }
 
-
-
-    fun save() {
-        val obj = mapOf(
-//            "playerIdx" to playerIdx,
-//            "computerLevel" to computerLevel,
-            "gameState" to gameState,
-            "playerScore1" to playerScore1,
-            "playerScore2" to playerScore2,
-            "dice" to dice,
-            "numGames" to numGames,
-            "gameIdx" to gameIdx
-        )
-        localStorage.setItem("game", JSON.stringify(obj))
-    }
 }
 
+fun saveGame(game: Game?) {
+    localStorage.setItem("game", JSON.stringify(game))
+}
 
 fun loadGame(): Game? {
     val saved = localStorage.getItem("game") ?: return null
-    val obj: Map<String, Any?> = JSON.parse(saved)
-//    val game =  Game(
-//        obj["playerIdx"] as Int,
-//        obj["computerLevel"] as Int,
-//        obj["numGames"] as Int
-//    )
-//    game.loadGameState(
-//        obj["gameState"] as GameState,
-//        obj["dice"] as Dice,
-//        obj["playerScore1"] as Int,
-//        obj["playerScore2"] as Int,
-//        obj["gameIdx"] as Int,
-//    )
-    return null
+     return JSON.parse(saved)
 }
 

@@ -17,7 +17,7 @@ interface IController {
     fun animationFinished()
 }
 
-data class Player(val name: String, val avatar_path: String, val isOpponent: Boolean)
+data class Player(val name: String, val isOpponent: Boolean)
 
 class App :IController {
 
@@ -46,8 +46,8 @@ class App :IController {
     override fun newGame() {
         // initialize player profiles
         val isPlayer1 = if (settings.color == PlayerSide.RANDOM) Random.nextBoolean() else settings.color == PlayerSide.PLAYER1
-        var player1 = Player("Computer ${settings.level}", "assets/avatar.jpg", true)
-        var player2 = Player("Player", "assets/avatar.jpg", false)
+        var player1 = Player("Computer ${settings.level}", true)
+        var player2 = Player("Player",  false)
         if (isPlayer1) player1 = player2.also {player2 = player1}
         players = player1 to player2
         playerIdx = if (isPlayer1) 1 else 2
