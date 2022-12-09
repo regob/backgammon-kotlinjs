@@ -17,8 +17,7 @@ interface IAnimatedGameScreen {
     fun moveChecker(fieldFrom: Int, fieldTo: Int)
     fun bearOffChecker(fieldFrom: Int)
     fun newTurnOf(playerIdx: Int)
-    fun roundEnded()
-    fun gameEnded()
+    fun roundEnded(gameEnd: Boolean, userWon: Boolean)
     fun noMovesAvailable()
 }
 

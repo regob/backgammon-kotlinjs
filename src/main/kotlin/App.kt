@@ -60,7 +60,6 @@ class App :IController {
     }
 
     private fun receiveGameEvent(event: GameEvent) {
-        console.log("New event: ${event::class.simpleName}")
         queue.addFirst(event)
         // if the user actions are blocked, we are waiting
         // for the end of an animation and cannot handle the next event
@@ -137,12 +136,12 @@ class App :IController {
                 gameScreen.setPlayerScores(game!!.playerScore1, game!!.playerScore2)
                 if (game!!.finalGameResult() == Result.RUNNING) {
                     userActionsBlocked = true
-                    animGameScreen.roundEnded()
+                    animGameScreen.roundEnded(false, event.winner == playerIdx)
                 } else if (queue.isNotEmpty()) handleNextEvent()
             }
             is GameEndEvent -> {
                 userActionsBlocked = true
-                animGameScreen.gameEnded()
+                animGameScreen.roundEnded(true, event.winner == playerIdx)
             }
         }
     }
@@ -165,6 +164,14 @@ class App :IController {
             animGameScreen.noMovesAvailable()
             return
         }
+        // round has ended, start new round
+        if (currentEvent is RoundEndEvent && game!!.finalGameResult() == Result.RUNNING) {
+            currentEvent = null
+            queue.clear()
+            game!!.startNewRound()
+        }
+        // game has ended, restart
+        if (currentEvent is GameEndEvent) start()
         if (queue.isNotEmpty()) handleNextEvent()
     }
 
@@ -225,7 +232,6 @@ class App :IController {
     }
 
     override fun diceRollClicked() {
-        console.log("Dice roll clicked, $userActionsBlocked")
         checkNotNull(game) {"Game is null, and dice roll is requested."}
         if (userActionsBlocked) return
         val currentResult = game!!.currentRoundResult()

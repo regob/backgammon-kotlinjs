@@ -1,6 +1,7 @@
 package view
 
 import ANIM_DURATION_DICE
+import ANIM_DURATION_GAME_END
 import AppScreen
 import IAnimatedGameScreen
 import IController
@@ -20,6 +21,7 @@ import org.w3c.dom.get
 import kotlin.js.Date
 import ANIM_DURATION_MOVE
 import ANIM_DURATION_NEW_TURN
+import ANIM_DURATION_ROUND_END
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -39,6 +41,16 @@ private val STR_OK = "OK"
 
 private val STR_NO_MOVES_TITLE = "No moves"
 private val STR_NO_MOVES_BODY = "You don't have any legal moves left. :("
+
+private val STR_ROUND_END = "Round end"
+private val STR_ROUND_LOST = "You lost this round, but no worries: the game is not over yet!"
+private val STR_ROUND_WON = "Nice job! This round is yours."
+private val STR_NEW_ROUND = "Next round"
+
+private val STR_GAME_END = "Game end"
+private val STR_GAME_LOST = "You lost the game. Better luck next time!"
+private val STR_GAME_WON = "You won the game! That's how it's done!"
+private val STR_NEW_GAME = "To main menu"
 
 
 
@@ -179,13 +191,22 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         }, ANIM_DURATION_NEW_TURN)
     }
 
-    override fun roundEnded() {
-        // if game ended too, do not do anything
-        TODO("Not yet implemented")
-    }
-
-    override fun gameEnded() {
-        TODO("Not yet implemented")
+    override fun roundEnded(gameEnd: Boolean, userWon: Boolean) {
+        if (!gameEnd) {
+            val body = if (userWon) STR_ROUND_WON else STR_ROUND_LOST
+            window.setTimeout({
+                displayModalDialog(STR_ROUND_END, body, STR_NEW_ROUND) {
+                    app.animationFinished()
+                }
+            }, ANIM_DURATION_ROUND_END)
+        } else {
+            val body = if (userWon) STR_GAME_WON else STR_GAME_LOST
+            window.setTimeout({
+                displayModalDialog(STR_GAME_END, body, STR_NEW_GAME) {
+                    app.animationFinished()
+                }
+            }, ANIM_DURATION_GAME_END)
+        }
     }
 
     override fun noMovesAvailable() {
