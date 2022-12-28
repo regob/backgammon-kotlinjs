@@ -21,6 +21,7 @@ import org.w3c.dom.get
 import kotlin.js.Date
 import ANIM_DURATION_NEW_TURN
 import ANIM_DURATION_ROUND_END
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import kotlin.math.min
 
@@ -76,6 +77,7 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
     private val playerProfile2 = PlayerProfile(player2.name, false, false,
         gameBoard.checkerRadius, 2 * (gameBoard.checkerRadius + gameBoard.checkerBorder))
     private lateinit var rollDiceButton: HTMLButtonElement
+    private lateinit var container: HTMLElement
 
     private val boardMarginX = 150
     private val boardMarginY = 100
@@ -87,12 +89,12 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
     private fun autoScaleBoard() {
         val scaleW = window.innerWidth.toDouble() / (gameBoard.svgWidth + 2*boardMarginX)
         val scaleH = window.innerHeight.toDouble() / (gameBoard.svgHeight + 2*boardMarginY)
-        root.setAttribute("style", "scale:${min(scaleW, scaleH)}")
+        container.setAttribute("style", "scale:${min(scaleW, scaleH)}")
     }
 
     private fun renderAll() {
         root.clear()
-        val container = document.create.div("game-container") {}
+        container = document.create.div("game-container") {}
         root.appendChild(container)
         container.append {
             div("status-row") {

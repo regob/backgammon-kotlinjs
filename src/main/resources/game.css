@@ -5,6 +5,8 @@
     flex-direction: column;
     justify-content: center;
     margin-top: 20px;
+    /* set the transformation properties when scaled using the `scale` key dynamically */
+    transform-origin: 50% top;
 }
 
 
