@@ -1,6 +1,5 @@
 import model.*
-import org.w3c.dom.events.Event
-import kotlin.math.abs
+import kotlin.js.Date
 import kotlin.random.Random
 import kotlin.reflect.KClass
 import kotlin.test.*
@@ -98,7 +97,7 @@ class TestGame {
         println("Dice rolled: $dice")
 
         // choose one of the available moves (we know they exist in the initial state)
-        val moveSequences = game.gameState!!.possibleMoveSequences(4)
+        val moveSequences = game.gameState!!.possibleMoveSequences()
         assertNotEquals(0, moveSequences.size, "Move sequences should exist")
         val moves = moveSequences[0]
 
@@ -136,7 +135,7 @@ class TestGame {
 
             // check possible moves (using the saved state, because game.gameState could have changed)
             prevState.setDice(dice)
-            val moveSeq = prevState.possibleMoveSequences(4)
+            val moveSeq = prevState.possibleMoveSequences()
             if (moveSeq.isEmpty()) {
                 sink.expectNewTurn()
                 continue
@@ -175,6 +174,7 @@ class TestGame {
             sink.expectNewTurn()
 
             assertEquals(Result.RUNNING, game.currentRoundResult(), "Game should be running")
+            val nCheckers = mutableMapOf(1 to 15, 2 to 15)
             while (game.currentRoundResult() == Result.RUNNING) {
                 val prevState = game.gameState!!.deepcopy()
                 game.rollDice()
@@ -182,7 +182,7 @@ class TestGame {
 
                 // check possible moves (using the saved state, because game.gameState could have changed)
                 prevState.setDice(dice)
-                val moveSeq = prevState.possibleMoveSequences(4)
+                val moveSeq = prevState.possibleMoveSequences()
                 if (moveSeq.isEmpty()) {
                     sink.expectNewTurn()
                     continue
@@ -193,10 +193,21 @@ class TestGame {
                 // choose moves and make them
                 val moves = moveSeq[random.nextInt(0, moveSeq.size)]
                 for (move in moves) {
+                    if (move.to == -1) nCheckers[game.turnOf()!!] = nCheckers[game.turnOf()!!]!! - 1
                     game.makeMove(move.from, move.to)
                     val movemade = sink.expectMove()
                     assertEquals(move, movemade, "Move requested and move made are not equal")
                 }
+
+                // check whether the number of checkers on the board is correct
+                for (i in 1..2) {
+                    val checkers = game.gameState!!.fields.zip(game.gameState!!.fieldPlayerIdx).sumOf {
+                        if (it.second == i) it.first else 0
+                    }
+                    assertEquals(nCheckers[i]!!, checkers, "Number of checkers on the board for player $i is incorrect")
+                }
+
+
                 // if the current player won, round end is expected
                 if (game.currentRoundResult() in listOf(Result.PLAYER1_WON, Result.PLAYER2_WON)) {
                     sink.expectRoundEnd()
@@ -225,7 +236,11 @@ class TestGame {
 
     @Test
     fun testGameLotsOfRounds() {
-        runMultipleRounds(35, 5656)
+        val start = Date.now()
+        runMultipleRounds(100, 565)
+        val total = Date.now() - start
+        println("100 games took: $total s")
     }
+
 
 }

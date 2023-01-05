@@ -1,5 +1,8 @@
 package model
 
+import Dice
+import Move
+
 /**
  * Event interface of the Game. Data contained for each event type:
  * - NewRoundEvent: -

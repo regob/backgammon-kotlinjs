@@ -1,10 +1,10 @@
-package model
-
+import kotlinx.serialization.Serializable
 import kotlin.math.abs
 
 /**
  * A move of a checker from a field to another field.
  */
+@Serializable
 open class Move(val from: Int, val to: Int) {
     override fun toString(): String {
         return "Move($from, $to)"
@@ -23,26 +23,44 @@ open class Move(val from: Int, val to: Int) {
 /**
  * A move performed in the game.
  */
+@Serializable
 class MoveMade(
-    fieldFrom: Int, fieldTo: Int, val hitPiece: Boolean, val numberUsed: Int, val withPrevious: Boolean = false
-) : Move(fieldFrom, fieldTo)
+    val from: Int, val to: Int, val hitPiece: Boolean, val numberUsed: Int, val withPrevious: Boolean = false
+)
 
 /**
- * ## State of the backgammon game's current round.
+ * ## State of the backgammon game.
  * Normal fields are numbered from 1 to 24, starting from bottom right.
  * Player1's home row is 18-24, player2's is 1-6.
- * Fields 0 and 25 are the bars of player1 and player2 respectively.
+ * Fields 0 and 25 are the bars of player1 and player2 respectively (which makes sense as a continuation of the board)
  * Field -1 is the exit point for both players.
+ *
+ * @param turnOf index of the player on turn (1 or 2)
+ * @param fields Number of checkers on each field
+ * @param fieldPlayerIdx Index of player controlling the field. 0 is empty
+ * @param numbersLeft Numbers from the dice that have not been used yet. (double rolls like 6-6 are inserted 4 times into the list)
  */
+@Serializable
 data class GameState(
     var turnOf: Int, val fields: MutableList<Int>, val fieldPlayerIdx: MutableList<Int>,
     val numbersLeft: MutableList<Int> = mutableListOf(),
 ) {
 
+    /**
+     * Stores the moves made in each turn. The last element is the most recent turn.
+     */
     private val lastMovesByTurn: MutableList<MutableList<MoveMade>> = mutableListOf(
         mutableListOf()
     )
 
+    /**
+     * Stores already computed legal move sequences in this position.
+     */
+    private var possibleMoveSeqCache: List<List<Move>>? = null
+
+    /**
+     * Player index of the opponent.
+     */
     private inline fun opponent() = 3 - turnOf
 
     override fun equals(other: Any?): Boolean {
@@ -61,6 +79,7 @@ data class GameState(
     fun nextTurn() {
         turnOf = opponent()
         lastMovesByTurn.add(mutableListOf())
+        possibleMoveSeqCache = null
     }
 
     /**
@@ -69,6 +88,7 @@ data class GameState(
     fun setDice(dice: Dice) {
         numbersLeft.clear()
         numbersLeft.addAll(dice.numbers())
+        possibleMoveSeqCache = null
     }
 
     /**
@@ -129,17 +149,19 @@ data class GameState(
     private fun isMoveLegalUsingNumber(move: Move, number: Int): Boolean {
         // illegal move on the board
         if (!isMoveLegalWithoutDice(move)) return false
+
         // if it is not a bearing off move, the number has to equal the field diff
         if (move.to >= 0) return number == abs(move.from - move.to)
-        // the move is a bearing off move at this point (move.to == -1)
 
+        // the move is a bearing off move at this point (move.to == -1)
+        // the checker would be moved to field `target`
         val target = move.from + (if (turnOf == 1) number else -number)
         val bearOffDiff = if (turnOf == 1) 25 - target else target
         if (bearOffDiff == 0) return true
         if (bearOffDiff > 0) return false
         // `number` is more than what is needed. No non-bear off moves should exist.
 
-        val higherRange = if (turnOf == 1) 0 until move.from else 25 downTo (move.from + 1)
+        val higherRange = if (turnOf == 1) 19 until move.from else 6 downTo (move.from + 1)
         // go through the higher home row fields, where shouldn't be player's checkers
         for (i in higherRange) {
             if (fields[i] > 0 && fieldPlayerIdx[i] == turnOf) return false
@@ -167,8 +189,11 @@ data class GameState(
         return moves
     }
 
+    /**
+     * Returns the only possible bear off move that uses a higher number than needed, if such a move exists.
+     */
     private fun nonExactBearOffCandidate(): Move? {
-        val maxNum = numbersLeft.max()
+        val maxNum = numbersLeft.maxOrNull() ?: return null
         // go through the available bear off fields and get the farthest one
         val bearOffRange = if (turnOf == 1) (26 - maxNum)..24 else (maxNum - 1) downTo 1
         for (i in bearOffRange) {
@@ -183,73 +208,87 @@ data class GameState(
     /**
      * Returns the possible sequences of moves that can be played currently.
      */
-    fun possibleMoveSequences(maxLen: Int): List<List<Move>> {
-        check(maxLen >= 2) { "maxLen has to be at least 2 for deciding which moves are valid" }
+    fun possibleMoveSequences(): List<List<Move>> {
         if (numbersLeft.isEmpty()) return emptyList()
 
-        /**
-         * Walk the tree of possible moves with DFS
-         */
-        fun dfs(
-            numbers: List<Int>,
-            path: MutableList<Move> = mutableListOf(),
-            acc: MutableList<List<Move>> = mutableListOf(),
-        ): MutableList<List<Move>> {
-            if (numbers.isEmpty() || path.size == maxLen) {
-                acc.add(path.toList())
-                return acc
-            }
-            val initialAccSize = acc.size
+        // the results are cached already
+        if (possibleMoveSeqCache != null) return possibleMoveSeqCache!!
 
-            // check possible moves for all unique die numbers left
-            val candidates = mutableMapOf<Int, List<Move>>()
-            for (num in numbers.toSet()) candidates[num] = moveCandidates(num)
-            // if no legal candidate was found, we check the non-exact bear off move
-            if (candidates.all {it.value.isEmpty()}) {
-                val cand = nonExactBearOffCandidate()
-                if (cand != null) candidates[numbers.max()] = listOf(cand)
-            }
+        // data structures for storing state during dfs
+        val path = mutableListOf<Move>()
+        val acc = mutableListOf<List<Move>>()
 
-            // check each possible move's subtree
-            for ((num, moves) in candidates.entries) {
-                val numIdx = numbers.indexOf(num)
-                val remainingNumbers = numbers.take(numIdx) + numbers.drop(numIdx + 1)
-                for (move in moves) {
-                    doMakeMove(move, num)
-                    path.add(move)
-                    dfs(remainingNumbers, path, acc)
-                    path.removeLast()
-                    doUndoLastMove()
+        // stores edges of the tree to be explored, in (move, number used) pairs. Null moves mean return to the parent node.
+        val moveStack = mutableListOf<Pair<Move, Int>?>()
+
+        // expand the current node we are at: add its children to
+        inline fun expandNode() {
+            // insert edge back to parent
+            moveStack.add(null)
+            // for each unique number left, add possible moves
+            for (num in numbersLeft.toSet())
+                for (move in moveCandidates(num)) moveStack.add(move to num)
+
+            // if no moves found, try the non-exact bear off move too
+            if (moveStack.last() == null)
+                nonExactBearOffCandidate()?.let {
+                    moveStack.add(it to numbersLeft.max())
                 }
-            }
 
-            // if no children node was inserted, we insert this node, since it is possible that
-            // not all numbers can be used, and we need the longest paths
-            if (initialAccSize == acc.size && path.size > 0) acc.add(path.toList())
-            return acc
+            // if no children node found (= top of the stack is null), add the current path to the results
+            if (moveStack.last() == null && path.isNotEmpty()) acc.add(path.toList())
         }
 
-        val candidates = dfs(numbersLeft)
-        if (candidates.isEmpty()) return candidates
-        val maxCandidateLen = candidates.maxOf { it.size }
+        // start by expanding the root
+        expandNode()
+        // walk the nodes of the tree by dfs
+        while (moveStack.isNotEmpty()) {
+            val top = moveStack.removeLast()
+            // back to parent node
+            if (top == null) {
+                if (moveStack.isNotEmpty()) {
+                    doUndoLastMove()
+                    path.removeLast()
+                }
+                continue
+            }
+
+            // make the move and expand the new node
+            doMakeMove(top.first, top.second)
+            path.add(top.first)
+            expandNode()
+        }
+
+        if (acc.isEmpty()) return acc.also {possibleMoveSeqCache = it}
+        val maxCandidateLen = acc.maxOf { it.size }
+
         // only the longest move sequences are valid (player has to use the most possible dice numbers)
-        val longestCandidates = candidates.filter { it.size == maxCandidateLen }
+        val longestCandidates = acc.filter { it.size == maxCandidateLen }
+
         // if only one move can be done, we have to use the bigger number if we can
         if (maxCandidateLen == 1 && numbersLeft.size > 1) {
             val maxNum = numbersLeft.max()
-            val maxNumCandidates = longestCandidates.filter { isMoveLegalUsingNumber(it[0], maxNum) }
-            if (maxNumCandidates.isNotEmpty()) return maxNumCandidates
+            val maxNumCandidates = longestCandidates.filter {
+                it[0].to == -1 || abs(it[0].to - it[0].from) == maxNum
+            }
+            if (maxNumCandidates.isNotEmpty()) return maxNumCandidates.also {possibleMoveSeqCache = it}
         }
-        return longestCandidates
+        return longestCandidates.also {possibleMoveSeqCache = it}
     }
 
     /**
      * If the move is a compound move, split it to single moves. If it is invalid, return null.
+     * If the move can be split in multiple ways, this finds the shortest one that hits the most opponent pieces.
+     * E.g.: when bearing off, and player1 has numbers 1 and 2 left, it is valid for him to perform
+     * Move(23, -1) using number 2, but the sequence of Move(23, 24), Move(24, -1) could be valid too using both numbers.
+     * We decompose the move so that it is the most favorable to the current player.
      */
     fun decomposeMove(move: Move): List<Move>? {
-        val moveSequences = possibleMoveSequences(4)
+        val moveSequences = possibleMoveSequences()
         // we search for the shortest good move sequence that equals to this move
+        // The number of hits only matters in move sequences of length 2: we take the one with the intermediate hit if possible
         var shortestSeq: List<Move>? = null
+
         for (moveSeq in moveSequences) {
             var from = move.from
             for ((i, m) in moveSeq.withIndex()) {
@@ -257,7 +296,13 @@ data class GameState(
                 if (m.to == move.to) {
                     val seq = moveSeq.subList(0, i + 1)
                     if (seq.size == 1) return seq
-                    if (shortestSeq == null || shortestSeq.size > seq.size) shortestSeq = seq
+
+                    // if no correct seq found yet, or this is the shortest so far, we store it
+                    // if the length is the same as the best, but this hits on the first move, also favor this one
+                    if (shortestSeq == null || shortestSeq.size > seq.size ||
+                        (shortestSeq.size == seq.size && fieldPlayerIdx[seq[0].to] == opponent()))
+                        shortestSeq = seq
+
                 }
                 from = m.to
             }
@@ -277,7 +322,7 @@ data class GameState(
      * Return fields from which the player has available moves.
      */
     fun moveableFields(): List<Int> {
-        val moveSequences = possibleMoveSequences(2)
+        val moveSequences = possibleMoveSequences()
         val fields = mutableSetOf<Int>()
         for (moveSeq in moveSequences) {
             fields.add(moveSeq[0].from)
@@ -289,11 +334,14 @@ data class GameState(
      * Check whether any moves are available for the current player
      */
     fun anyMovesPossible(): Boolean {
-        return possibleMoveSequences(2).isNotEmpty()
+        return possibleMoveSequences().isNotEmpty()
     }
 
+    /**
+     * Possible moves from a given field.
+     */
     fun possibleMovesFrom(field: Int): List<Move> {
-        val moveSequences = possibleMoveSequences(4)
+        val moveSequences = possibleMoveSequences()
         val moves = mutableSetOf<Move>()
         for (moveSeq in moveSequences) {
             var from = field
@@ -306,7 +354,13 @@ data class GameState(
         return moves.toList()
     }
 
+    /**
+     * Make a move using `dieNum` from numbersLeft. If `withPrevious`, the move is considered a compound move with the previous one.
+     */
     private fun doMakeMove(move: Move, dieNum: Int, withPrevious: Boolean = false) {
+        // clear move seq cache
+        possibleMoveSeqCache = null
+
         fields[move.from] -= 1
         if (fields[move.from] == 0) fieldPlayerIdx[move.from] = 0
         var hitPiece = false
@@ -323,10 +377,14 @@ data class GameState(
         numbersLeft.remove(dieNum)
     }
 
+    /**
+     * Perform a move. The move can be a single move (e.g Move(1, 5) using 4, or a compound move like Move(1, 10) using nums 4 and 5.
+     * Checking whether the move is a compound move and it is valid, causes an overhead. For forcing single moves without checking use `forceMove`.
+     */
     fun makeMove(move: Move) {
         check(numbersLeft.size > 0)
         val singleMoves = decomposeMove(move)
-        singleMoves ?: return
+        singleMoves ?: throw IllegalArgumentException("Move $move is invalid.")
 
         for ((i, sMove) in singleMoves.withIndex()) {
             val (highNum, lowNum) = Pair(numbersLeft.max(), numbersLeft.min())
@@ -339,8 +397,29 @@ data class GameState(
         }
     }
 
+    /**
+     * Force to make a move without checking whether it is valid.
+     */
+    fun forceMove(move: Move) {
+        // non-bear-off move
+        if (move.to != -1) doMakeMove(move, abs(move.to - move.from))
+        else {
+            val diff = if (turnOf == 1) 25 - move.from else move.from
+            // exact bear off
+            if (diff in numbersLeft) doMakeMove(move, diff)
+            // non-exact bear off: only highest number can be used
+            else doMakeMove(move, numbersLeft.max())
+        }
+    }
+
+    /**
+     * Perform the undo procedure of the last move.
+     */
     private fun doUndoLastMove(): Boolean {
         val move = lastMovesByTurn.lastOrNull()?.removeLastOrNull() ?: return false
+
+        // clear move seq cache
+        possibleMoveSeqCache = null
 
         if (move.hitPiece) { // hit a piece ==> we have to restore that piece
             fieldPlayerIdx[move.to] = opponent()
@@ -358,6 +437,9 @@ data class GameState(
         return true
     }
 
+    /**
+     * Undo the last move (compound or single).
+     */
     fun undoLastMove(): Boolean {
         val lastMoves = lastMovesByTurn.lastOrNull()
         lastMoves ?: return false
@@ -369,9 +451,16 @@ data class GameState(
         return true
     }
 
+    /**
+     * Undo the complete turn. The board will be in the position left at the end of the last turn.
+     */
     fun undoLastTurn(): Boolean {
         val lastMoves = lastMovesByTurn.lastOrNull()
         lastMoves ?: return false
+
+        // clear move seq cache
+        possibleMoveSeqCache = null
+
         while (doUndoLastMove()) {}
         lastMovesByTurn.removeLast()
         numbersLeft.clear()
@@ -379,6 +468,9 @@ data class GameState(
         return true
     }
 
+    /**
+     * Return who won if the round has ended or `Result.RUNNING` if it is in progress.
+     */
     fun roundResult(): Result {
         if ((0..24).all { fieldPlayerIdx[it] != 1 || fields[it] == 0 }) return Result.PLAYER1_WON
         if ((1..25).all { fieldPlayerIdx[it] != 2 || fields[it] == 0 }) return Result.PLAYER2_WON
@@ -387,6 +479,10 @@ data class GameState(
 
 }
 
+
+/**
+ * Get an initial game state if the specified player goes first.
+ */
 fun initialGameState(whoGoesFirst: Int): GameState {
     val fields = MutableList(26) { 0 }
     val fieldPlayerIdx = MutableList(26) { 0 }
@@ -400,6 +496,9 @@ fun initialGameState(whoGoesFirst: Int): GameState {
     return GameState(whoGoesFirst, fields, fieldPlayerIdx)
 }
 
+/**
+ * Basic board display using ASCII characters for debugging.
+ */
 fun asciiBoard(gameState: GameState): String {
     val rows = mutableListOf<String>()
     for (i in 1..3) {

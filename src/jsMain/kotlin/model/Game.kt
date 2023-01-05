@@ -3,14 +3,11 @@ package model
 import kotlinx.browser.localStorage
 import kotlin.math.max
 import kotlin.math.min
-
-enum class Result {
-    NOT_STARTED,
-    RUNNING,
-    PLAYER1_WON,
-    PLAYER2_WON,
-}
-
+import Dice
+import GameState
+import Move
+import Result
+import initialGameState
 
 class Game(
     val numGames: Int,

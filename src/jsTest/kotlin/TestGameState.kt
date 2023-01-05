@@ -1,4 +1,3 @@
-import model.*
 import kotlin.math.abs
 import kotlin.test.*
 
@@ -176,7 +175,7 @@ class TestInitialState {
         // if we first move 1 then 3: 3*5
         // if we first move 3 then 1: 4*4
         val numGoodMoves = 3*5 + 4*4
-        val possibleMoves = gameState.possibleMoveSequences(4)
+        val possibleMoves = gameState.possibleMoveSequences()
         assertEquals(numGoodMoves, possibleMoves.size, "Number of good moves should be $numGoodMoves")
         assertTrue(possibleMoves.all {it.size == 2}, "All possible sequences should have a length of 2.")
     }
@@ -230,7 +229,7 @@ class TestMoves {
             listOf(Move(4, 8), Move(8, 9)),
             listOf(Move(4, 8), Move(2, 3)),
         )
-        val sequences = gameState.possibleMoveSequences(4)
+        val sequences = gameState.possibleMoveSequences()
         assertEquals(goodMoveSeq.size, sequences.size, "Number of move sequences should be ${goodMoveSeq.size}")
         assertEquals(goodMoveSeq.toSet(), sequences.toSet(), "Move sequences should be equal")
         assertEquals(setOf(2, 4), gameState.moveableFields().toSet(), "Moveable fields")
@@ -243,7 +242,7 @@ class TestMoves {
         gameState.makeMove(Move(4, 5))
         assertEquals(listOf(4), gameState.numbersLeft, "Remaining numbers")
         val goodMoveSeq2 = listOf(listOf(Move(5, 9)))
-        val sequences2 = gameState.possibleMoveSequences(4)
+        val sequences2 = gameState.possibleMoveSequences()
         assertEquals(goodMoveSeq2.size, sequences2.size, "Number of move sequences should be ${goodMoveSeq2.size}")
         assertEquals(goodMoveSeq2.toSet(), sequences2.toSet(), "Move sequences should be equal")
         assertEquals(setOf(5), gameState.moveableFields().toSet(), "Moveable fields")
@@ -251,7 +250,7 @@ class TestMoves {
 
         // final move: 5-->9
         gameState.makeMove(Move(5, 9))
-        val sequences3 = gameState.possibleMoveSequences(4)
+        val sequences3 = gameState.possibleMoveSequences()
         assertEquals(0, sequences3.size, "No sequences should be left")
         assertFalse(gameState.anyMovesPossible(), "No moves should be possible")
     }
@@ -290,7 +289,7 @@ class TestMoves {
             listOf(Move(25, 20), Move(25, 19)),
             listOf(Move(25, 19), Move(25, 20))
         )
-        val sequences = gameState.possibleMoveSequences(4)
+        val sequences = gameState.possibleMoveSequences()
         assertEquals(goodMoveSeq.toSet(), sequences.toSet(), "Move sequences should be equal")
         gameState.makeMove(Move(25, 20))
         assertEquals(setOf(25), gameState.moveableFields().toSet(), "Only the bar should be playable")
@@ -333,7 +332,7 @@ class TestMoves {
         gameState.setDice(Dice(6, 6))
         gameState.checkBadMoves(listOf(Move(5, -1), Move(1, -1)))
         gameState.checkGoodMoves(listOf(Move(24, 18), Move(24, 12), Move(24, 6), Move(24, -1)))
-        assertEquals(1, gameState.possibleMoveSequences(4).size, "Only one move sequence should exist")
+        assertEquals(1, gameState.possibleMoveSequences().size, "Only one move sequence should exist")
         gameState.makeMove(Move(24, -1))
 
         /* fields 19-24:
@@ -357,7 +356,7 @@ class TestMoves {
         gameState.setDice(Dice(6, 6))
         // there is only one move sequence
         val sequence = listOf(Move(5, -1), Move(2, -1), Move(2, -1), Move(1, -1))
-        val sequences = gameState.possibleMoveSequences(4)
+        val sequences = gameState.possibleMoveSequences()
         assertEquals(listOf(sequence), sequences, "Only one move sequence should be possible")
         for (move in sequence) {
             assertTrue(gameState.isMovePossible(move))
@@ -451,7 +450,7 @@ class TestMoves {
         val dice = Dice(5, 6)
         val gameState = createGameState(player1Fields4, player2Fields4, 1, dice)
         // there should be one move, moving a piece from the bar to field 5
-        val moveSeq = gameState.possibleMoveSequences(4)
+        val moveSeq = gameState.possibleMoveSequences()
         assertEquals(listOf(listOf(Move(0, 5))), moveSeq, "Only one move should exist")
     }
 

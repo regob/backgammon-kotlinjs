@@ -1,4 +1,3 @@
-import ai.Computer
 import kotlinx.browser.document
 import model.*
 import org.w3c.dom.HTMLElement
@@ -151,6 +150,7 @@ class App :IController {
     }
 
     override fun animationFinished() {
+        println("Animationfinished")
         userActionsBlocked = false
         // if the event being handled was a dice roll or a move, we highlight the board
         if (turnOf == playerIdx && (currentEvent is DiceRollEvent || currentEvent is MoveEvent)) {

@@ -21,7 +21,6 @@ import org.w3c.dom.get
 import kotlin.js.Date
 import ANIM_DURATION_NEW_TURN
 import ANIM_DURATION_ROUND_END
-import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.events.Event
 import kotlin.math.min
 
@@ -60,7 +59,13 @@ fun displayModalDialog(title: String, body: String, buttonText: String, callback
     modalButton.innerText = buttonText
 
     if (callback != null) {
-        modalButton.addEventListener("click", callback)
+        var clicked = false
+        modalButton.addEventListener("click", {
+            if (!clicked) {
+                clicked = true
+                callback(it)
+            }
+        })
     }
     val modalShowButton = document.getElementById("${MODAL_ID}-show") as HTMLButtonElement
     modalShowButton.click()

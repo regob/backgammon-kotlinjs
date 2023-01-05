@@ -4,6 +4,7 @@ import ANIM_DURATION_DICE
 import ANIM_DURATION_MOVE
 import ANIM_FREQ_DICE
 import ANIM_FREQ_MOVE
+import ANIM_WAIT_AFTER_DICE
 import Component
 import IController
 import Renderable
@@ -198,7 +199,7 @@ class GameBoard(private val app: IController) : Component(), Renderable {
             die.render(root!!)
             if (animated) die.animateRolling(ANIM_DURATION_DICE, ANIM_FREQ_DICE)
         }
-        window.setTimeout(app::animationFinished, ANIM_DURATION_DICE)
+        window.setTimeout(app::animationFinished, ANIM_DURATION_DICE + ANIM_WAIT_AFTER_DICE)
     }
 
     fun moveChecker(fieldFrom: Int, fieldTo: Int) {
@@ -236,6 +237,7 @@ class GameBoard(private val app: IController) : Component(), Renderable {
 
     fun bearOffChecker(fieldFrom: Int) {
         val checker = checkersAt[fieldFrom].removeLast()
+        checker.isFocused = false // clear focus from this checker, as it is removed from the fields
         val bar = bars[2]
         val posX = bar.getAttribute("x")!!.toInt() + bar.getAttribute("width")!!.toInt() / 2
         val posY = bar.getAttribute("y")!!.toInt() + bar.getAttribute("height")!!.toInt() / 2

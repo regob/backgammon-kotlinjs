@@ -1,5 +1,3 @@
-package model
-
 import kotlinx.html.currentTimeMillis
 import kotlin.math.max
 import kotlin.math.min
