@@ -80,65 +80,9 @@ kotlin {
 }
 
 
-
-//task("jsBrowserDevelopmentRun") {
-//    dependsOn()
-//}
-
-//
-//
-//kotlin {
-//    js(IR) {
-//        binaries.executable()
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "client.js"
-//                cssSupport.enabled = true
-//            }
-//        }
-//    }
-//    js("webworker", IR) {
-//        binaries.executable()
-//        browser{
-//            commonWebpackConfig {
-//                outputFileName = "worker.js"
-//            }
-//        }
-//    }
-//    sourceSets {
-//        val commonMain by getting {
-//            dependencies {
-//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
-//            }
-//        }
-//        val jsMain by getting {
-//            dependencies {
-//                implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
-//            }
-//        }
-//        val jsTest by getting {
-//            dependencies {
-//                implementation(kotlin("test-js"))
-//            }
-//        }
-//        val webworkerMain by getting {
-//            dependencies {
-//                //worker has separate deps from main
-//                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.0")
-//            }
-//        }
-//    }
-//}
-//
-////rootProject.plugins.withType(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin::class.java) {
-////    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().versions.webpackCli.version = "4.9.0"
-////}
-//
-//
-///*This task just copies files from build/distributions to /docs
-//    to make it easier to update gh-pages  */
-//task("copyDistToDocs", Copy::class) {
-//    from("$buildDir/distributions/")
-//    into("/docs")
-//}
-//tasks.named("copyDistToDocs"){ dependsOn("build") }
+// This task copies files from build/distributions to /docs for github-pages
+task("copyDistToDocs", Copy::class) {
+    from("$buildDir/distributions/")
+    into("docs")
+}
+tasks.named("copyDistToDocs"){ dependsOn("build") }
