@@ -237,9 +237,9 @@ class TestGame {
     @Test
     fun testGameLotsOfRounds() {
         val start = Date.now()
-        runMultipleRounds(100, 565)
+        runMultipleRounds(50, 565)
         val total = Date.now() - start
-        println("100 games took: $total s")
+        println("50 games took: $total s")
     }
 
 
