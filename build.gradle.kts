@@ -12,14 +12,6 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
 }
 
-//dependencies {
-//    testImplementation(kotlin("test-js"))
-//    implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
-//    //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-//    //implementation(npm("bootstrap", "5.2.2"))
-//    //implementation(devNpm("html-webpack-plugin", "5.3.1"))
-//}
-
 kotlin {
     js ("worker", IR) {
         binaries.executable()
@@ -51,8 +43,6 @@ kotlin {
         }
     }
 
-
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -62,6 +52,11 @@ kotlin {
         }
         val workerMain by getting {
             dependsOn(commonMain)
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+                implementation(npm("onnxruntime-web", "1.13.1"))
+                implementation(npm("onnxruntime-common", "1.13.1"))
+            }
         }
         val jsMain by getting {
             dependsOn(commonMain)
@@ -74,15 +69,29 @@ kotlin {
         val workerTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
             }
         }
     }
 }
 
+tasks.named("workerProductionExecutableCompileSync") {
+    dependsOn("jsProductionExecutableCompileSync")
+}
 
 // This task copies files from build/distributions to /docs for github-pages
 task("copyDistToDocs", Copy::class) {
     from("$buildDir/distributions/")
     into("docs")
+    dependsOn("workerBrowserDistribution", "jsBrowserDistribution")
 }
-tasks.named("copyDistToDocs"){ dependsOn("build") }
+
+task("buildAll") {
+    dependsOn("workerBrowserDistribution", "jsBrowserDistribution", "copyDistToDocs")
+}
+
+task("buildAndTestAll") {
+    dependsOn("workerBrowserDistribution", "jsBrowserDistribution", "jsBrowserTest", "workerBrowserTest", "copyDistToDocs")
+}
+
+

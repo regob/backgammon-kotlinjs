@@ -1,22 +1,40 @@
+import kotlinx.coroutines.test.runTest
+import scorers.*
 import kotlin.js.Date
 import kotlin.test.*
 
 class TestWorker {
     @Test
-    fun testHeuristicScorer() {
-        val scorer = HeuristicScorer()
+    fun testDumbeval() = runTest {
+        val dumbevalScorer = Dumbeval()
         for (i in 0..3)
-            for (j in 0..scorer.MX)
-                assertEquals(1.0, scorer.winProb[i][j], 1e6)
+            for (j in 0..dumbevalScorer.MX)
+                assertEquals(1.0f, dumbevalScorer.winProb[i][j], 1e6f)
 
         for ((i, j) in listOf(50 to 13, 220 to 220, 190 to 175, 110 to 126, 50 to 46, 60 to 65, 49 to 65)) {
-            println("P[$i, $j] = ${scorer.winProb[i][j]}")
+            println("P[$i, $j] = ${dumbevalScorer.winProb[i][j]}")
         }
 
     }
 
     @Test
-    fun testMinimax() {
+    fun testPubeval() = runTest {
+        val scorer: Pubeval = Pubeval(50f)
+        val initState1 = initialGameState(1)
+        println("Features: ${initState1.pubevalFeatures(0)}")
+
+        println("Player 1 goes first, player1 score: ${scorer.score(initState1, 1)}")
+        println("Player 1 goes first, player2 score: ${scorer.score(initState1, 2)}")
+
+        val initState2 = initialGameState(2)
+        println("Player 2 goes first, player1 score: ${scorer.score(initState2, 1)}")
+        println("Player 2 goes first, player2 score: ${scorer.score(initState2, 2)}")
+
+    }
+
+
+    @Test
+    fun testMinimax() = runTest {
         val state = initialGameState(1)
         state.setDice(Dice(4, 5))
 
