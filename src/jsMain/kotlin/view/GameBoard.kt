@@ -272,10 +272,11 @@ class GameBoard(private val app: IController) : Component(), Renderable {
     }
 
     fun focusField(field: Int?) {
-        for (i in 1..24) {
-            triangles[i-1].isFocused = field == i
+        // unfocus triangles and checkers
+        for (i in 0..23) triangles[i].isFocused = field == i
+        for (i in 0..25)
             for (checker in checkersAt[i]) checker.isFocused = false
-        }
+        // if a field is selected, highlight the last checker there
         if (field != null && checkersAt[field].isNotEmpty())
             checkersAt[field].last().isFocused = true
     }

@@ -71,7 +71,7 @@ class TestGame {
     fun testGameStart() {
         // initialize a game and seed the Dice to make the test reproducible
         val game = Game(1, sink::insert)
-        Dice.setSeed(1442)
+        Dice.setSeed(1441)
 
         sink.expectNoEvent()
         assertEquals(Result.NOT_STARTED, game.currentRoundResult(), "Round should not have started")
@@ -119,7 +119,7 @@ class TestGame {
     @Test
     fun testOneRound() {
         // initialize a game and seed the Dice to make the test reproducible
-        val game = Game(2, sink::insert)
+        val game = Game(4, sink::insert)
         Dice.setSeed(42)
 
         game.startNewRound()
@@ -219,7 +219,7 @@ class TestGame {
             val winner = if (game.currentRoundResult() == Result.PLAYER1_WON) 1 else 2
             println("Round $round won by Player${winner} (${game.playerScore1} - ${game.playerScore2}), final board: ")
             println(asciiBoard(game.gameState!!))
-            if (game.playerScore1 >= N/2 + 1 || game.playerScore2 >= N/2 + 1) {
+            if (game.playerScore1 >= N || game.playerScore2 >= N) {
                 val gameWinner = sink.expectGameEnd()
                 println("Final winner: Player$winner.")
                 break

@@ -1,3 +1,4 @@
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.w3c.dom.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -23,7 +24,7 @@ class ResponseData(
 )
 
 /**
- * Represents an AI player.
+ * Represents an AI player that receives queries, and sends back the moves chosen asynchronously.
  */
 class Computer (level: Int, val callback: (List<Move>) -> Unit, val timeLimitMs: Int =  500) {
     val level: Int = run {
@@ -39,9 +40,6 @@ class Computer (level: Int, val callback: (List<Move>) -> Unit, val timeLimitMs:
     }
 
     fun query(gameState: GameState) {
-//        val moveSeq = gameState.possibleMoveSequences(4)
-//        val choice = if (moveSeq.isEmpty()) listOf() else moveSeq[Random.nextInt(0, moveSeq.size)]
-//        callback(choice)
         val data = QueryData(gameState, level, timeLimitMs)
         worker.postMessage(Json.encodeToString(data))
     }

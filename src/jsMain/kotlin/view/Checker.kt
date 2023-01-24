@@ -47,16 +47,9 @@ class Checker(
         parent.removeChild(root!!)
         parent.appendChild(root!!)
 
-        // SVG ANIMATION, has timing issues sometimes ...
-//        val anim = document.createElementNS(SVG_NS, "animateMotion") as SVGElement
-//        anim.setAttribute("dur", "${animationDurationMs}ms")
-//        val path = "M${cx - ncx},${cy - ncy} L0,0"
-//        anim.setAttribute("path", path)
-//        anim.setAttribute("begin", "${Date.now() - svgLoadEpoch}ms")
-//        root?.clear()
-//        root?.appendChild(anim)
-
         val startTime = Date.now()
+
+        intervalId?.let {window.clearInterval(it)}
         intervalId = window.setInterval({
             val timeLeft = startTime + animationDurationMs - Date.now()
             if (timeLeft < intervalMs) {

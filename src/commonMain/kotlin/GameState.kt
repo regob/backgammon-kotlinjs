@@ -61,7 +61,7 @@ data class GameState(
     /**
      * Player index of the opponent.
      */
-    private inline fun opponent() = 3 - turnOf
+    inline fun opponent() = 3 - turnOf
 
     override fun equals(other: Any?): Boolean {
         if (other !is GameState) return false

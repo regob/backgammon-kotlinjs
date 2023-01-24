@@ -1,12 +1,21 @@
 import kotlinx.browser.document
-import model.*
+import kotlinx.browser.localStorage
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLElement
+import kotlin.random.Random
+
+import model.*
 import view.GameScreen
 import view.HomeScreen
-import kotlin.random.Random
 
 interface IController {
     fun newGame()
+    fun saveGame()
+    fun loadSavedGame()
+    fun savedGameExists(): Boolean
     fun newRoundClicked()
     fun fieldClicked(idx: Int)
     fun checkerClicked(fieldIdx: Int)
@@ -16,33 +25,57 @@ interface IController {
     fun animationFinished()
 }
 
+@Serializable
 data class Player(val name: String, val isOpponent: Boolean)
 
 class App :IController {
-
     private lateinit var root: HTMLElement
     private lateinit var homeScreen: HomeScreen
     private lateinit var gameScreen: IGameScreen
     private lateinit var animGameScreen: IAnimatedGameScreen
 
     private var settings: Settings = loadSettings()
+
+    // game-state dependent properties
     private var game: Game? = null
     private lateinit var players: Pair<Player, Player>
     private var playerIdx: Int = 1
     private var turnOf: Int = 1
     private lateinit var computer: Computer
 
+    // properties connected to display handling
     private val queue = ArrayDeque<GameEvent>()
     private var currentEvent: GameEvent? = null
     private var userActionsBlocked = false
     private var fieldSelected: Int? = null
 
+    /**
+     * reset properties for a new game
+     */
+    private fun reset() {
+        queue.clear()
+        currentEvent = null
+        userActionsBlocked = false
+        fieldSelected = null
+    }
+
+    /**
+     * Start the application, and display the home screen.
+     */
     fun start() {
+        reset()
         root = document.getElementById("root") as HTMLElement
         homeScreen = HomeScreen(this, root, settings)
     }
 
+
+    /**
+     * Start a new game using the current settings.
+     */
     override fun newGame() {
+        reset()
+        invalidateSavedGame()
+        saveSettings(settings)
         // initialize player profiles
         val isPlayer1 = if (settings.color == PlayerSide.RANDOM) Random.nextBoolean() else settings.color == PlayerSide.PLAYER1
         var player1 = Player("Computer ${settings.level}", true)
@@ -51,10 +84,56 @@ class App :IController {
         players = player1 to player2
         playerIdx = if (isPlayer1) 1 else 2
         // initialize the game and the game screen, where it is displayed
-        gameScreen = GameScreen(this, root, player1, player2)
+        gameScreen = GameScreen(this, root, player1, player2, settings.maxScore)
         animGameScreen = gameScreen as IAnimatedGameScreen
-        game = Game(settings.numRounds, ::receiveGameEvent)
+        game = Game(settings.maxScore, ::receiveGameEvent)
         computer = Computer(settings.level, this::handleComputerResponse)
+    }
+
+    override fun saveGame() {
+        if (game == null || game!!.finalGameResult() != Result.RUNNING)
+            invalidateSavedGame()
+        else {
+            localStorage.setItem("game", Json.encodeToString(game))
+            localStorage.setItem("players", Json.encodeToString(players))
+            localStorage.setItem("version", VERSION)
+        }
+    }
+
+    private fun invalidateSavedGame() {
+        localStorage.removeItem("game")
+    }
+
+
+    override fun savedGameExists(): Boolean {
+        localStorage.getItem("game") ?: return false
+        val version = localStorage.getItem("version") ?: return false
+        return (version == VERSION)
+    }
+
+    override fun loadSavedGame() {
+        reset()
+        val savedGame = localStorage.getItem("game") ?: error("Saved game does not exist.")
+        val savedPlayers = localStorage.getItem("players") ?: error("saved players do not exist.")
+        game = Json.decodeFromString(savedGame)
+        game!!.gameEventListener = ::receiveGameEvent
+        turnOf = game!!.turnOf()!!
+        computer = Computer(settings.level, ::handleComputerResponse)
+
+        players = Json.decodeFromString(savedPlayers)
+        playerIdx = if (players.first.isOpponent) 2 else 1
+
+        gameScreen = GameScreen(this, root, players.first, players.second, game!!.maxScore)
+        // set state on the game screen
+        val state = game!!.gameState!!
+        gameScreen.setPosition(state.fields, state.fieldPlayerIdx, state.turnOf, game!!.dice?.let {it.num1 to it.num2})
+        animGameScreen = gameScreen as IAnimatedGameScreen
+
+        // if it's the computer's turn, make it move
+        if (game!!.turnOf() == 3 - playerIdx) {
+            if (game!!.dice == null) game!!.rollDice()
+            if (game!!.turnOf() != playerIdx) computer.query(game!!.gameState!!.deepcopy())
+        }
     }
 
     private fun receiveGameEvent(event: GameEvent) {
@@ -108,6 +187,7 @@ class App :IController {
             is MoveEvent -> {
                 fieldSelected = null
                 userActionsBlocked = true
+                console.log("MoveEvent processed: ${event.move}")
                 if (event.move.to == -1) {
                     animGameScreen.bearOffChecker(event.move.from)
                 } else animGameScreen.moveChecker(event.move.from, event.move.to)
@@ -126,7 +206,7 @@ class App :IController {
                 if (turnOf != playerIdx) {
                     game!!.rollDice()
                     // if at this point if the computer did not have moves, the game progressed to the next turn
-                    if (game!!.turnOf() != playerIdx) computer.query(game!!.gameState!!)
+                    if (game!!.turnOf() != playerIdx) computer.query(game!!.gameState!!.deepcopy())
                 }
                 highlightBoard(false)
             }
@@ -139,6 +219,7 @@ class App :IController {
             }
             is GameEndEvent -> {
                 userActionsBlocked = true
+                invalidateSavedGame()
                 animGameScreen.roundEnded(true, event.winner == playerIdx)
             }
         }
@@ -154,7 +235,7 @@ class App :IController {
         userActionsBlocked = false
         // if the event being handled was a dice roll or a move, we highlight the board
         if (turnOf == playerIdx && (currentEvent is DiceRollEvent || currentEvent is MoveEvent)) {
-            highlightBoard()
+            highlightBoard(game!!.turnOf() == turnOf)
         }
         // if no moves are possible, display the no moves message
         if (turnOf == playerIdx && currentEvent is DiceRollEvent && game!!.turnOf() != turnOf) {
@@ -168,6 +249,7 @@ class App :IController {
             currentEvent = null
             queue.clear()
             game!!.startNewRound()
+            return
         }
         // game has ended, restart
         if (currentEvent is GameEndEvent) start()

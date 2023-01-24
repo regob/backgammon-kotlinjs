@@ -1,8 +1,10 @@
 import kotlinx.html.currentTimeMillis
+import kotlinx.serialization.Serializable
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
+@Serializable
 data class Dice(val num1: Int, val num2: Int) {
     companion object {
         private var random: Random = Random(currentTimeMillis())

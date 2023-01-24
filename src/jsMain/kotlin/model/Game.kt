@@ -1,17 +1,25 @@
 package model
 
-import kotlinx.browser.localStorage
-import kotlin.math.max
-import kotlin.math.min
+
 import Dice
 import GameState
 import Move
 import Result
 import initialGameState
+import kotlinx.serialization.Transient
+import kotlinx.serialization.Serializable
 
+/**
+ * A backgammon game, which consists of multiple rounds. In each round the winning player
+ * gains a score. The game runs until either player reaches `maxScore`. In summary:
+ * - A **game** consists of multiple individual rounds until one player reaches `maxScore`.
+ * - A **round** consists of multiple **turns**. A round starts with an initial roll that decides who goes first.
+ *   Then the players take turns in alteration until one wins the round.
+ */
+@Serializable
 class Game(
-    val numGames: Int,
-    var gameEventListener: ((GameEvent) -> Unit)? = null,
+    val maxScore: Int,
+    @Transient var gameEventListener: ((GameEvent) -> Unit)? = null,
 ) {
     var gameState: GameState? = null
         private set
@@ -40,14 +48,16 @@ class Game(
         if (gameIdx <= 0) return Result.NOT_STARTED
         val currentResult = currentRoundResult()
         if (currentResult in listOf(Result.PLAYER1_WON, Result.PLAYER2_WON)) {
-            val minScore = min(playerScore1, playerScore2)
-            val maxScore = max(playerScore1, playerScore2)
-            if (minScore + numGames - gameIdx < maxScore)
-                return if (playerScore1 > playerScore2) Result.PLAYER1_WON else Result.PLAYER2_WON
+            if (playerScore1 >= maxScore) return Result.PLAYER1_WON
+            if (playerScore2 >= maxScore) return Result.PLAYER2_WON
         }
         return Result.RUNNING
     }
 
+    /**
+     * Start a new round of the game. The round starts from the initial position.
+     * The intial rolls are also performed, and the first turn starts.
+     */
     fun startNewRound() {
         if (currentRoundResult() == Result.RUNNING) throw IllegalStateException("A round is already running.")
         if (finalGameResult() !in listOf(Result.NOT_STARTED, Result.RUNNING))
@@ -112,9 +122,20 @@ class Game(
         val roundResult = currentRoundResult()
         if (roundResult != Result.RUNNING) {
             val winner = if (roundResult == Result.PLAYER1_WON) 1 else 2
-            if (winner == 1) playerScore1 += 1
-            else playerScore2 += 1
-            raiseEvent(RoundEndEvent(winner))
+            val loserStartArea = if (winner == 1) 19..25 else 0..6
+            val score = gameState!!.let {state ->
+                when {
+                    // backgammon
+                    loserStartArea.map {state.fields[it] }.sum() > 0 -> 3
+                    // gammon
+                    state.fields.sum() == 15 -> 2
+                    // normal win
+                    else -> 1
+                }
+            }
+            if (winner == 1) playerScore1 += score
+            else playerScore2 += score
+            raiseEvent(RoundEndEvent(winner, score))
 
             // check if game ended
             val gameResult = finalGameResult()
@@ -128,23 +149,4 @@ class Game(
         // round has not ended, go to next turn
         nextTurn()
     }
-
-    fun loadGameState(state: GameState, score1: Int, score2: Int, gameIdx: Int) {
-        playerScore1 = score1
-        playerScore2 = score2
-        this.dice = dice
-        gameState = state
-        this.gameIdx = gameIdx
-    }
-
 }
-
-fun saveGame(game: Game?) {
-    localStorage.setItem("game", JSON.stringify(game))
-}
-
-fun loadGame(): Game? {
-    val saved = localStorage.getItem("game") ?: return null
-     return JSON.parse(saved)
-}
-

@@ -71,11 +71,11 @@ fun displayModalDialog(title: String, body: String, buttonText: String, callback
     modalShowButton.click()
 }
 
-class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: Player)
+class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: Player, maxScore: Int)
     : AppScreen(app, root), IGameScreen, IAnimatedGameScreen {
 
     private val playerIndex = if (player1.isOpponent) 2 else 1
-    private val scoreBoard = ScoreBoard()
+    private val scoreBoard = ScoreBoard(maxScore)
     private val gameBoard = GameBoard(app)
     private val playerProfile1 = PlayerProfile(player1.name, true, true,
         gameBoard.checkerRadius, 2 * (gameBoard.checkerRadius + gameBoard.checkerBorder))
@@ -127,6 +127,10 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         rollDiceButton = document.getElementsByClassName("rolldice-button")[0] as HTMLButtonElement
         window.onresize = {autoScaleBoard()}
         autoScaleBoard()
+        window.onbeforeunload = {
+            app.saveGame()
+            null
+        }
     }
 
     override fun initialDiceRoll(result1: Int, result2: Int) {
@@ -177,10 +181,11 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
         dieNums?.let {
             gameBoard.playerDiceRoll(it.first, it.second, turnOf, false)
         }
-        val active = if (turnOf == 1) Pair(true, false) else Pair(false, true)
+        val active = if (turnOf == 1) true to false else false to true
         playerProfile1.isActive = active.first
         playerProfile2.isActive = active.second
         renderAll()
+        rollDiceButton.hidden = turnOf == playerIndex
     }
 
     override fun highlightFields(fields: List<Int>) {
