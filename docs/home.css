@@ -41,6 +41,11 @@
 .color-choice {
     margin-right: 10px;
 }
+
+.color-choice:last-of-type {
+    margin-right: 0px;
+}
+
 .color-choice > path.light {
     fill: peru;
 }
