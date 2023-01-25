@@ -131,5 +131,7 @@ circle.light {
     padding-right: 20px;
     border-style: solid;
     border-color: black;
+    background: peru !important;
+    border-color: peru !important;
 }
 
