@@ -76,7 +76,7 @@ kotlin {
 }
 
 tasks.named("workerProductionExecutableCompileSync") {
-    dependsOn("jsProductionExecutableCompileSync")
+    finalizedBy("compileProductionExecutableKotlinJs")
 }
 
 // This task copies files from build/distributions to /docs for github-pages

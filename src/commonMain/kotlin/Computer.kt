@@ -1,4 +1,3 @@
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.w3c.dom.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
