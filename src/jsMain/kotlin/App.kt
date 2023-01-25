@@ -133,6 +133,8 @@ class App :IController {
         if (game!!.turnOf() == 3 - playerIdx) {
             if (game!!.dice == null) game!!.rollDice()
             if (game!!.turnOf() != playerIdx) computer.query(game!!.gameState!!.deepcopy())
+        } else {
+            if (game!!.dice != null) highlightBoard(true)
         }
     }
 
@@ -169,7 +171,8 @@ class App :IController {
         if (queue.isEmpty()) throw IllegalStateException("No next event: queue is empty")
         val event = queue.removeLast()
         currentEvent = event
-        console.log("Handling event ... ${event::class.simpleName}")
+        if (DEBUG)  console.log("Handling event ... ${event::class.simpleName}")
+
         when (event) {
             is InitialDiceRollEvent -> {
                 userActionsBlocked = true
@@ -187,7 +190,6 @@ class App :IController {
             is MoveEvent -> {
                 fieldSelected = null
                 userActionsBlocked = true
-                console.log("MoveEvent processed: ${event.move}")
                 if (event.move.to == -1) {
                     animGameScreen.bearOffChecker(event.move.from)
                 } else animGameScreen.moveChecker(event.move.from, event.move.to)
@@ -231,7 +233,7 @@ class App :IController {
     }
 
     override fun animationFinished() {
-        println("Animationfinished")
+        if (DEBUG) println("Animationfinished")
         userActionsBlocked = false
         // if the event being handled was a dice roll or a move, we highlight the board
         if (turnOf == playerIdx && (currentEvent is DiceRollEvent || currentEvent is MoveEvent)) {

@@ -11,6 +11,7 @@ val ANIM_DURATION_ROUND_END = 1500
 val ANIM_DURATION_GAME_END = 1500
 
 val VERSION = "0.1"
+val DEBUG = false
 
 fun main() {
     val app = App()

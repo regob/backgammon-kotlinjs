@@ -21,6 +21,7 @@ import org.w3c.dom.get
 import kotlin.js.Date
 import ANIM_DURATION_NEW_TURN
 import ANIM_DURATION_ROUND_END
+import DEBUG
 import org.w3c.dom.events.Event
 import kotlin.math.min
 
@@ -134,7 +135,7 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
     }
 
     override fun initialDiceRoll(result1: Int, result2: Int) {
-        println("Initial dice roll: $result1 - $result2")
+        if (DEBUG) console.log("Initial dice roll: $result1 - $result2")
         rollDiceButton.hidden = true
         gameBoard.initialDiceRoll(result1, result2)
         val delay = ANIM_DURATION_DICE + 1000
@@ -178,14 +179,15 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
 
     override fun setPosition(fields: List<Int>, fieldPlayerIdx: List<Int>, turnOf: Int, dieNums: Pair<Int, Int>?) {
         gameBoard.setFieldCheckers(fields, fieldPlayerIdx)
-        dieNums?.let {
-            gameBoard.playerDiceRoll(it.first, it.second, turnOf, false)
-        }
         val active = if (turnOf == 1) true to false else false to true
         playerProfile1.isActive = active.first
         playerProfile2.isActive = active.second
         renderAll()
-        rollDiceButton.hidden = turnOf == playerIndex
+        if (dieNums != null) {
+            gameBoard.playerDiceRoll(dieNums.first, dieNums.second, turnOf, false)
+        }
+        rollDiceButton.hidden = (turnOf != playerIndex || dieNums != null)
+
     }
 
     override fun highlightFields(fields: List<Int>) {
@@ -201,7 +203,7 @@ class GameScreen(app: IController, root: HTMLElement, player1: Player, player2: 
     }
 
     override fun newTurnOf(playerIdx: Int) {
-        console.log("New turn of $playerIdx")
+        if (DEBUG) console.log("New turn of $playerIdx")
         gameBoard.dice = emptyList()
         val active = if (playerIdx == 1) Pair(true, false) else Pair(false, true)
         playerProfile1.isActive = active.first
