@@ -1,13 +1,17 @@
+const path = require('path');
+
+// resources for the site
 config.module.rules.push(
     {
         test: /\.(png|svg|jpg|css)$/,
         type: 'asset/resource'
     }
 );
-// add resource files needed for the worker
+
+// resource files for the worker (onnx models)
 config.module.rules.push(
     {
-        test: /\.(onnx|wasm)$/,
+        test: /\.(onnx)$/,
         type: 'asset/resource'
     }
 );
