@@ -5,6 +5,7 @@ A client-side backgammon game in the browser featuring:
 - Computer AI player using the Expecti-Minimax algorithm. The stronger levels use a neural net
   (TDGammon-like) exported in the [onnx](https://onnx.ai/) format using the
   [onnx js runtime](https://www.npmjs.com/package/onnxruntime-web).
+- Rendering only using SVG objects and CSS styling.
 
 **The game is hosted at: [https://regob.github.io/backgammon-kotlinjs/](https://regob.github.io/backgammon-kotlinjs/)**
 
@@ -49,5 +50,4 @@ for both the **worker** and the main **js** target:
 - The AI runs on a separate thread using a WebWorker, that's why the `worker.js` target is needed. 
 - The neural net can be replaced by other `onnx` models, but if they use different input or output representations,
 the adapter code needs to be modified accordingly. The current nets use the [TDGammon](https://www.scholarpedia.org/article/User:Gerald_Tesauro/Proposed/Td-gammon) 0.0 representation (198 input neurons).
-
 - The nets were trained using the [gym-backgammon](https://github.com/regob/gym-backgammon) repo (which is a fork of [dellalibera/gym-backgammon](https://github.com/dellalibera/gym-backgammon)), and exported to onnx.
